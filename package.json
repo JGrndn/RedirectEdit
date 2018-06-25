@@ -1,0 +1,21 @@
+{
+  "name": "RedirectEdit",
+  "description": "This plug-in allows you to redirect users to different pages when they enter edit mode",
+  "version": "0.0.0",
+  "main": "RedirectManager.js",
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JGrndn/RedirectEdit"
+  },
+  "author": "Jerome GRONDIN",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JGrndn/RedirectEdit/issues"
+  },
+  "homepage": "",
+  "wiki": "https://github.com/JGrndn/RedirectEdit/wiki",
+  "evolve-version": "4.0 - 4.2"
+}
