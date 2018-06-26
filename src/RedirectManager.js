@@ -18,10 +18,10 @@
             }
           }
         }
+        if (editPageByPageAndRoles[view].hasOwnProperty('default')) {
+          return editPageByPageAndRoles[view].default;
+        }
       }
-    }
-    if (editPageByPageAndRoles[view].hasOwnProperty('default')) {
-      return editPageByPageAndRoles[view].default;
     }
     return view;
   };
