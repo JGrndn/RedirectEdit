@@ -6,8 +6,13 @@
 * default : view to be redirected to if there is no role
 */
 var editPageByPageAndRoles = {
-  'application': {
+  'pia': {
     1: 'application_edit',
-    default: 'application2'
+    association : {
+    	cw_user_20196_274399564 : 'pia_evaluateur',
+    	cw_user_20195_1319762562 : 'pia_validation',
+    	    	
+    },
+    default: 'pia_modification'
   }
 };
