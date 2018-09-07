@@ -1,51 +1,73 @@
 /* Copyright © 2012-2017 erwin, Inc. - All rights reserved */
 
 /*global cwAPI, jQuery*/
-(function (cwApi, $) {
+(function(cwApi, $) {
   "use strict";
 
 
   function isUserAssociated(associationsList) {
     for (var i = 0; i < associationsList.length; i++) {
-        if(associationsList[i].object_id === cwApi.currentUser.ID) return true;
+      if (associationsList[i].object_id === cwApi.currentUser.ID) return true;
     }
     return false;
   }
 
 
-  function getViewNameForEdit(view,item){
-    var currentUser = cwApi.currentUser, r, targetView = '', associations;
-    if (!cwApi.isUndefined(editPageByPageAndRoles)){
-      if (editPageByPageAndRoles.hasOwnProperty(view)){
-        if(editPageByPageAndRoles[view].association) { // association
+  function getViewNameForEdit(view, item) {
+    var currentUser = cwApi.currentUser,
+      r, targetView = '',
+      targetRedirection = {},
+      associations;
+    if (!cwApi.isUndefined(editPageByPageAndRoles)) {
+      if (editPageByPageAndRoles.hasOwnProperty(view)) {
+        if (editPageByPageAndRoles[view].association) { // association
           associations = editPageByPageAndRoles[view].association;
-          for (let [nodeID, targetView] of Object.entries(associations)) {
-              if(item && item.associations.hasOwnProperty(nodeID) && isUserAssociated(item.associations[nodeID])) {
-                return targetView;
-              }
-          } 
+          for (let [nodeID, targetRedirection] of Object.entries(associations)) {
+            if (item && item.associations.hasOwnProperty(nodeID) && isUserAssociated(item.associations[nodeID])) {
+              return targetRedirection;
+            }
+          }
 
-          // role
-        } else if (currentUser.RolesId.length === 1 && editPageByPageAndRoles[view].hasOwnProperty(currentUser.RolesId[0])){
-          return editPageByPageAndRoles[view][currentUser.RolesId[0]];
-        } else if (currentUser.RolesId.length > 1){
-          for(r in editPageByPageAndRoles[view]){
+          // roletargetRedirection
+        } else if (currentUser.RolesId.length === 1 && editPageByPageAndRoles[view].hasOwnProperty(currentUser.RolesId[0])) {
+          targetRedirection.view = editPageByPageAndRoles[view][currentUser.RolesId[0]];
+          return targetRedirection;
+        } else if (currentUser.RolesId.length > 1) {
+          for (r in editPageByPageAndRoles[view]) {
             // get first target in list
-            if (editPageByPageAndRoles[view].hasOwnProperty(r)){
-              return editPageByPageAndRoles[view][r];
+            if (editPageByPageAndRoles[view].hasOwnProperty(r)) {
+              targetRedirection.view = editPageByPageAndRoles[view][r];
+              return targetRedirection;
             }
           }
         }
         if (editPageByPageAndRoles[view].hasOwnProperty('default')) {
-          return editPageByPageAndRoles[view].default;
+          targetRedirection.view = editPageByPageAndRoles[view].default;
+          return targetRedirection;
         }
       }
     }
-    return view;
+    targetRedirection.view = view;
+    return targetRedirection;
   };
 
-  cwApi.cwEditProperties.cwEditPropertyManagerDOM.prototype.setEditModeButtonsActions = function () {
-    var that = this, showComments = false, paddingTop = $('.page-content').css('padding-top');
+  function checkAccess(config, item) {
+    if (!cwApi.cwUser.canAccessView(cwApi.currentUser, cwApi.getView(config.view))) {
+      return $.i18n.prop('error_NotHaveTheRightsToSeeThisPage');
+    }
+    if (config.denyPropertyFilter && config.denyPropertyFilter.property && item.properties[config.denyPropertyFilter.property.toLowerCase()] && cwAPI.customLibs.isActionToDo) {
+      if (cwAPI.customLibs.isActionToDo(item, config.denyPropertyFilter)) {
+        return config.message;
+      }
+    }
+    return null;
+  };
+
+
+  cwApi.cwEditProperties.cwEditPropertyManagerDOM.prototype.setEditModeButtonsActions = function() {
+    var that = this,
+      showComments = false,
+      paddingTop = $('.page-content').css('padding-top');
 
     cwApi.CwEditCancel.registerActions(this.editPropertyManager);
     cwApi.CwEditDelete.registerActions(this.editPropertyManager.item);
@@ -57,39 +79,43 @@
         $('.cw-edit-buttons').remove();
       }
     } else {
-      cwApi.CwEdit.registerEditButtonClick(function () {
-        
-        var qs = cwApi.getQueryStringObject(), url,targetView;
-        targetView = getViewNameForEdit(qs.cwview,that.editPropertyManager.item)
+      cwApi.CwEdit.registerEditButtonClick(function() {
 
-        if(targetView === cwApi.getCurrentView().cwView) {
+        var qs = cwApi.getQueryStringObject(),
+          url, targetRedirection, currentView = cwApi.getCurrentView().cwView;
+
+        targetRedirection = getViewNameForEdit(qs.cwview, that.editPropertyManager.item);
+
+        if (targetRedirection.view === currentView) { //standard code
           var o = [];
           cwApi.disableLoadPage = true;
           cwApi.cwEditProperties.setEditMode();
           cwApi.cwPageManager.updateQueryString();
           if (cwApi.cwEditProperties.isTinymce(that.editPropertyManager) === true) {
-              cwApi.cwTinymceManager.loadTinymce(function () {
-                  that.editPropertyManager.goToEditMode();
-              });
-          } else {
+            cwApi.cwTinymceManager.loadTinymce(function() {
               that.editPropertyManager.goToEditMode();
+            });
+          } else {
+            that.editPropertyManager.goToEditMode();
           }
           that.outputSaveAndCancelButton(o);
           $('div.cw-edit-buttons').html(o.join(''));
           that.setEditModeButtonsActions();
-        } else if(cwApi.cwUser.canAccessView(cwApi.currentUser, cwApi.getView(targetView))) {
-          cwApi.CwPendingEventsManager.setEvent("SetEditMode");
-          url = 'cwtype=' + qs.cwtype + '&cwview=' + targetView + '&lang=' + qs.lang + '&cwid=' + qs.cwid + '&cwmode=' + cwApi.CwMode.Edit;
-          var o = [];
-          that.outputSaveAndCancelButton(o);
-          $('div.cw-edit-buttons').html(o.join(''));
-          that.setEditModeButtonsActions();
-          sessionStorage.setItem("lastUrl", cwApi.getURLHash().replace('#', ''));
-          cwApi.updateURLHash(url);
         } else {
-          cwApi.cwNotificationManager.addError($.i18n.prop('error_NotHaveTheRightsToSeeThisPage'));
-          $('#top-actions').removeClass('edit-mode');
-
+          var message = checkAccess(targetRedirection, that.editPropertyManager.item);
+          if (message === null) { // if you can accesss
+            cwApi.CwPendingEventsManager.setEvent("SetEditMode");
+            url = 'cwtype=' + qs.cwtype + '&cwview=' + targetRedirection.view + '&lang=' + qs.lang + '&cwid=' + qs.cwid + '&cwmode=' + cwApi.CwMode.Edit;
+            var o = [];
+            that.outputSaveAndCancelButton(o);
+            $('div.cw-edit-buttons').html(o.join(''));
+            that.setEditModeButtonsActions();
+            sessionStorage.setItem("lastUrl", cwApi.getURLHash().replace('#', ''));
+            cwApi.updateURLHash(url);
+          } else {
+            cwApi.cwNotificationManager.addError(message);
+            $('#top-actions').removeClass('edit-mode');
+          }
         }
 
         cwApi.CwPendingEventsManager.deleteEvent("SetEditMode");
@@ -97,30 +123,29 @@
     }
 
 
-   
+
   };
 
 
   function getRedirectPage(parentId, parentObjectTypeId) {
-      if (!cwApi.isUndefined(parentId) && !cwApi.isUndefined(parentObjectTypeId)) {
-          var parentObjectTypeScriptName = cwApi.mm.getObjectTypeById(parentObjectTypeId).scriptName.toLowerCase();
-          if (cwApi.cwConfigs.SingleViewsByObjecttype.hasOwnProperty(parentObjectTypeScriptName)) {
-              return cwApi.getSingleViewHash(parentObjectTypeScriptName, parentId);
-          } else {
-              return '#';
-          }
+    if (!cwApi.isUndefined(parentId) && !cwApi.isUndefined(parentObjectTypeId)) {
+      var parentObjectTypeScriptName = cwApi.mm.getObjectTypeById(parentObjectTypeId).scriptName.toLowerCase();
+      if (cwApi.cwConfigs.SingleViewsByObjecttype.hasOwnProperty(parentObjectTypeScriptName)) {
+        return cwApi.getSingleViewHash(parentObjectTypeScriptName, parentId);
       } else {
-          return '#';
+        return '#';
       }
+    } else {
+      return '#';
+    }
   }
 
-  cwApi.cwEditProperties.unsetEditMode = function () {
+  cwApi.cwEditProperties.unsetEditMode = function() {
     cwApi.CwPendingEventsManager.setEvent("UnsetEditMode");
     var regex, hash;
-    if (cwApi.queryObject.isEditMode()){
+    if (cwApi.queryObject.isEditMode()) {
       hash = sessionStorage.getItem('lastUrl');
-    }
-    else {
+    } else {
       regex = new RegExp('&cwmode=' + cwApi.CwMode.Edit, 'g');
       hash = cwApi.getURLHash().replace(regex, '').replace('#', '');
       hash = hash.replace(/\&cwisnew=true/g, '').replace('#', '');
@@ -136,8 +161,4 @@
 
 
 
-
 }(cwAPI, jQuery));
-
-
-
