@@ -143,16 +143,16 @@
   cwApi.cwEditProperties.unsetEditMode = function() {
     cwApi.CwPendingEventsManager.setEvent("UnsetEditMode");
     var regex, hash;
-    if (cwApi.queryObject.isEditMode()) {
+    if (cwApi.queryObject.isEditMode() && sessionStorage.hasOwnProperty('lastUrl')) {
       hash = sessionStorage.getItem('lastUrl');
     } else {
-      regex = new RegExp('&cwmode=' + cwApi.CwMode.Edit, 'g');
-      hash = cwApi.getURLHash().replace(regex, '').replace('#', '');
-      hash = hash.replace(/\&cwisnew=true/g, '').replace('#', '');
+      hash = cwApi.getURLHash();
     }
+      regex = new RegExp('&cwmode=' + cwApi.CwMode.Edit, 'g');
+      hash = hash.replace(regex, '').replace('#', '');
+      hash = hash.replace(/\&cwisnew=true/g, '').replace('#', '');
+    
     cwApi.updateURLHash(hash);
-    cwApi.CwShare.appendButton(null, false);
-    cwApi.CwPrintManager.appendPrintButton(cwApi.CwSinglePageActions.getLeftButtonsAnchor());
     cwApi.CwPendingEventsManager.deleteEvent("UnsetEditMode");
   };
 
