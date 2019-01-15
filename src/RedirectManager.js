@@ -23,8 +23,7 @@
       if (editPageByPageAndRoles.hasOwnProperty(view)) {
         if (editPageByPageAndRoles[view].association) { // association
           associations = editPageByPageAndRoles[view].association;
-          let asso = Object.entries(associations);
-          for(nodeID in associations) {
+          for(let nodeID in associations) {
             if (item && associations.hasOwnProperty(nodeID) && item.associations.hasOwnProperty(nodeID) && isUserAssociated(item.associations[nodeID])) {
               return associations[nodeID];
             }
