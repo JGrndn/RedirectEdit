@@ -19,16 +19,18 @@
       targetRedirection = {},
       associations;
     if (!cwApi.isUndefined(editPageByPageAndRoles)) {
+      // redirection due to association with the object
       if (editPageByPageAndRoles.hasOwnProperty(view)) {
         if (editPageByPageAndRoles[view].association) { // association
           associations = editPageByPageAndRoles[view].association;
-          for (let [nodeID, targetRedirection] of Object.entries(associations)) {
-            if (item && item.associations.hasOwnProperty(nodeID) && isUserAssociated(item.associations[nodeID])) {
-              return targetRedirection;
+          let asso = Object.entries(associations);
+          for(nodeID in associations) {
+            if (item && associations.hasOwnProperty(nodeID) && item.associations.hasOwnProperty(nodeID) && isUserAssociated(item.associations[nodeID])) {
+              return associations[nodeID];
             }
           }
 
-          // roletargetRedirection
+        // redirection due to role
         } else if (currentUser.RolesId.length === 1 && editPageByPageAndRoles[view].hasOwnProperty(currentUser.RolesId[0])) {
           targetRedirection.view = editPageByPageAndRoles[view][currentUser.RolesId[0]];
           return targetRedirection;
@@ -41,6 +43,7 @@
             }
           }
         }
+        //default redirection
         if (editPageByPageAndRoles[view].hasOwnProperty('default')) {
           targetRedirection.view = editPageByPageAndRoles[view].default;
           return targetRedirection;
