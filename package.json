@@ -1,7 +1,7 @@
 {
   "name": "RedirectEdit",
   "description": "This plug-in allows you to redirect users to different pages when they enter edit mode",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "RedirectManager.js",
   "scripts": {
     "test": ""
