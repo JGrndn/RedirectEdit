@@ -48,6 +48,8 @@
           return targetRedirection;
         }
       }
+    } else {
+      sessionStorage.removeItem('lastUrl')
     }
     targetRedirection.view = view;
     return targetRedirection;
@@ -147,6 +149,7 @@
     var regex, hash;
     if (cwApi.queryObject.isEditMode() && sessionStorage.hasOwnProperty('lastUrl')) {
       hash = sessionStorage.getItem('lastUrl');
+      sessionStorage.removeItem('lastUrl')
     } else {
       hash = cwApi.getURLHash();
     }
