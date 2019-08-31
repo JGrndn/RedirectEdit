@@ -111,7 +111,7 @@
           if (message === null) {
             // if you can accesss
             cwApi.CwPendingEventsManager.setEvent("SetEditMode");
-            url = "cwtype=" + qs.cwtype + "&cwview=" + targetRedirection.view + "&lang=" + qs.lang + "&cwid=" + qs.cwid + "&cwmode=" + cwApi.CwMode.Edit;
+            url = "#/cwtype=" + qs.cwtype + "&cwview=" + targetRedirection.view + "&lang=" + qs.lang + "&cwid=" + qs.cwid + "&cwmode=" + cwApi.CwMode.Edit;
             var o = [];
             that.outputSaveAndCancelButton(o);
             $("div.cw-edit-buttons").html(o.join(""));
