@@ -17,6 +17,14 @@
       targetView = "",
       targetRedirection = {},
       associations;
+    var editPageByPageAndRoles = "";
+    let configView = cwAPI.ViewSchemaManager.getPageSchema("z_custom_layout_configuration");
+    if (configView) {
+      editPageByPageAndRolesview.NodesByID[configView.RootNodesId].LayoutOptions.CustomOptions.config.redirectEdit;
+    } else {
+      editPageByPageAndRoles = {};
+    }
+
     if (!cwApi.isUndefined(editPageByPageAndRoles)) {
       // redirection due to association with the object
       if (editPageByPageAndRoles.hasOwnProperty(view)) {
